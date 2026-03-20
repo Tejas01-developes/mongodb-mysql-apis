@@ -1,6 +1,7 @@
 import { taskqueue } from "../backgroundworker/taskqueue.js";
-import { loginsqlquery, registerquerysql } from "../service/sqlservices.js";
+import { getrefreshinfo, insertrefreshsql, loginsqlquery, registerquerysql, updaterefreshsql } from "../service/sqlservices.js";
 import bcrypt from 'bcrypt'
+import { access, refreshh } from "../tokens/tokens.js";
 
 export const registersql = async (req, resp) => {
     const { name, email, password } = req.body;
@@ -38,9 +39,36 @@ export const loginsql = async (req, resp) => {
         if (!compare) {
             return resp.status(400).json({ success: false, messahe: "password is incorrect" })
         }
-        return resp.status(200).json({ success: true, message: "login succesfull" })
+       
+        const userid=getinfo[0].id;
+        const accesstoken=access(userid);
+        
+        let refreshtkn;
+        try{
+        const findrefresh=await getrefreshinfo({id:userid})
+        const now=Date.now();
+        const refreshdate=findrefresh[0].expire_at;
+        if(now > refreshdate){
+            refreshtkn=refreshh(userid);
+           
+            const updatetkn=updaterefreshsql({refreshtkn})
+        }else{
+        refreshtkn=findrefresh[0].token;
+        }
+
     } catch (err) {
-        return resp.status(400).json({ success: false, message: "login failed" })
+       refreshtkn=refreshh(userid)
+       const inserttoken=await insertrefreshsql({userid,token:refreshtkn})
     }
 
+    resp.cookie("refresh",refreshtkn,{
+        httpOnly:true,
+        sameSite:true,
+        secure:"Lax",
+        path:"/"
+    })
+    return resp.status(200).json({success:true,message:"login succesfully done"})
+    }catch(err){
+        return resp.status(400).json({success:false,message:"refresh token process failed"})
+    }
 }

@@ -12,7 +12,7 @@ export const access=(id)=>{
 
 
 
-export const refresh=(id)=>{
+export const refreshh=(id)=>{
     return jwt.sign(
         {id:id},
         process.env.REFRESH_KEY,
