@@ -105,4 +105,17 @@ export const getrefreshinfo=(data)=>{
 
 
 
-        
+export const insertsqlfilequery=(data)=>{
+    return new Promise((resolve,reject)=>{
+        db.query(
+            'insert into filesfolders (userid,filename,fileurl) values (?,?,?)',
+            [data.userid,data.filename,data.fileurl],
+            (err)=>{
+                if(err){
+                    return reject("no file uploaded")
+                }
+                return resolve("uploaded")
+            }
+        )
+    })
+}        

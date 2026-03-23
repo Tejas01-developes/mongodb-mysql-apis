@@ -1,7 +1,8 @@
 import { taskqueue } from "../backgroundworker/taskqueue.js";
-import { getrefreshinfo, insertrefreshsql, loginsqlquery, registerquerysql, updaterefreshsql } from "../service/sqlservices.js";
+import { getrefreshinfo, insertrefreshsql, insertsqlfilequery, loginsqlquery, registerquerysql, updaterefreshsql } from "../service/sqlservices.js";
 import bcrypt from 'bcrypt'
 import { access, refreshh } from "../tokens/tokens.js";
+import path from "path";
 
 export const registersql = async (req, resp) => {
     const { name, email, password } = req.body;
@@ -70,5 +71,24 @@ export const loginsql = async (req, resp) => {
     return resp.status(200).json({success:true,message:"login succesfully done"})
     }catch(err){
         return resp.status(400).json({success:false,message:"refresh token process failed"})
+    }
+}
+
+
+export const uploadfiledata=async(req,resp)=>{
+    if(!req.file){
+        return resp.status(400).json({success:false,message:"no file recived"})
+    }
+    const filename=req.file.filename;
+    const folder=process.env.UPLOAD_FOLDER;
+    const filepath=path.join(folder,filename)
+    const mimetype=req.file.mimetype;
+    console.log(mimetype);
+    const userid=req.id.id
+    try{
+        const uploadquery=await insertsqlfilequery({userid,filename,fileurl:filepath})
+        return resp.status(200).json({success:true,message:"file uploaded"})
+    }catch(err){
+    return resp.status(400).json({success:false,message:"file upload failed"})
     }
 }
