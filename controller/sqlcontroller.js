@@ -1,8 +1,10 @@
 import { taskqueue } from "../backgroundworker/taskqueue.js";
-import { getrefreshinfo, insertrefreshsql, insertsqlfilequery, loginsqlquery, registerquerysql, updaterefreshsql } from "../service/sqlservices.js";
+import { getfilepathsqlquery, getrefreshinfo, insertrefreshsql, insertsqlfilequery, loginsqlquery, registerquerysql, updaterefreshsql } from "../service/sqlservices.js";
 import bcrypt from 'bcrypt'
 import { access, refreshh } from "../tokens/tokens.js";
 import path from "path";
+import fs from 'fs';
+import mime from 'mime';
 
 export const registersql = async (req, resp) => {
     const { name, email, password } = req.body;
@@ -90,5 +92,30 @@ export const uploadfiledata=async(req,resp)=>{
         return resp.status(200).json({success:true,message:"file uploaded"})
     }catch(err){
     return resp.status(400).json({success:false,message:"file upload failed"})
+    }
+}
+
+
+export const getfilesql=async(req,resp)=>{
+    const userid=req.id.id;
+    
+    if(!userid){
+        return resp.status(400).json({success:false,message:"token is not avalible"})
+    }
+    try{
+        const getfilesinfo=await getfilepathsqlquery({userid});
+       const filepath=getfilesinfo[0].fileurl;
+       const finalfilepath=filepath.replace(/\\/g,"/");
+       if(!fs.existsSync(finalfilepath)){
+        return resp.status(400).json({success:false,message:"no file on this path"})
+    }
+        const mimetype=mime.getType(finalfilepath)
+        resp.setHeader("Content-Type",mimetype)
+    
+       fs.createReadStream(finalfilepath).pipe(resp);
+       
+
+    }catch(err){
+        return resp.status(400).json({success:false,message:"file info fetch failed"})
     }
 }

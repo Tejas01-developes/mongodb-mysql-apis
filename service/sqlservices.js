@@ -119,3 +119,26 @@ export const insertsqlfilequery=(data)=>{
         )
     })
 }        
+
+
+
+export const getfilepathsqlquery=(data)=>{
+    return new Promise((resolve,reject)=>{
+        db.query(
+            'select * from filesfolders where userid=?',
+            [data.userid],
+            (err,res)=>{
+                if(err){
+                   return reject("error",err)
+                }
+                if(res.length === 0){
+             return reject("null")
+                }
+               return resolve(res)
+            }
+        )
+    })
+       
+    }
+
+
