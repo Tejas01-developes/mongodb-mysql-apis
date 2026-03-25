@@ -104,6 +104,7 @@ export const getfilesql=async(req,resp)=>{
     }
     try{
         const getfilesinfo=await getfilepathsqlquery({userid});
+        
        const filepath=getfilesinfo[0].fileurl;
        const finalfilepath=filepath.replace(/\\/g,"/");
        if(!fs.existsSync(finalfilepath)){
